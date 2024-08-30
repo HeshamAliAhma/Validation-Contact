@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import Button from "./ui/Button";
 import CheckboxC from "./ui/Cheakbox";
 import Description from "./ui/Description";
 import Input from "./ui/Input";
 import { productValidation } from "./validation";
+import toast, { Toaster } from 'react-hot-toast';
 
 interface IProps {}
 
@@ -18,30 +19,61 @@ const Form = ({}: IProps) => {
     const [Contact, setContact] = useState(DefaultContact);
     const [errors, setErrors] = useState({ firstName: '', lastName: '', Email: '', Description: '' });
 
-    const submitHandler = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setContact({
+            ...Contact,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const { firstName, lastName, Email, Description } = Contact;
-
-        const validationErrors = productValidation({
-            firstName,
-            lastName,
-            Email,
-            Description,
+        // Validate the form data
+        const validationErrors = productValidation(Contact);
+        setErrors({
+            firstName: validationErrors.firstName || '',
+            lastName: validationErrors.lastName || '',
+            Email: validationErrors.Email || '',
+            Description: validationErrors.Description || '',
         });
 
+        // Check if there are any errors
         if (Object.keys(validationErrors).length === 0) {
-            console.log('Form submitted successfully:', Contact);
-            setErrors({ firstName: '', lastName: '', Email: '', Description: '' });
-        } else {
-            console.log('Validation errors:', validationErrors);
-            setErrors({
-                firstName: validationErrors.firstName || '',
-                lastName: validationErrors.lastName || '',
-                Email: validationErrors.Email || '',
-                Description: validationErrors.Description || '',
+            // No errors, proceed with form submission
 
+            // Here, you can submit the form using the Fetch API (if needed)
+            fetch('https://formspree.io/f/mvgplldw', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(Contact),
+            })
+            .then((response) => {
+                if (response.ok) {
+                    console.log('Form submitted successfully');
+                    // Optionally, you can clear the form here
+                    setContact(DefaultContact);
+                    setErrors(DefaultContact); // Clear errors
+                    toast('Your Message is Send Successfully',{
+                        style: {
+                            color:'white',
+                            background:'#22c55e',
+                            fontWeight:'bold'
+                        },
+                        icon: '👏',
+                    });
+                } else {
+                    console.error('Form submission failed');
+                }
+            })
+            .catch((error) => {
+                console.error('Error during form submission:', error);
             });
+        } else {
+            // Handle errors
+            console.log('Validation errors:', validationErrors);
         }
     };
 
@@ -51,39 +83,40 @@ const Form = ({}: IProps) => {
                 <div className="max-w-xl lg:max-w-3xl">
                     <h1 className="mt-6 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">Contact Us</h1>
 
-                    <form action="#" className="mt-8 grid grid-cols-6 gap-6">
+                    <form className="mt-8 grid grid-cols-6 gap-6" onSubmit={handleSubmit}>
                         <Input
                             htmlFor="FirstName"
                             label="First Name"
-                            name="first_name"
+                            name="firstName"  // Fixed the name attribute
                             type="text"
                             classMobile={"sm:col-span-3"}
                             value={Contact.firstName}
-                            onChange={(e) => setContact({ ...Contact, firstName: e.target.value })}
+                            onChange={handleChange}
                             error={errors.firstName}
                         />
                         <Input 
                             htmlFor="LastName"
                             label="Last Name"
-                            name="last_name"
+                            name="lastName"  // Fixed the name attribute
                             type="text"
                             classMobile={"sm:col-span-3"}
                             value={Contact.lastName}
-                            onChange={(e) => setContact({ ...Contact, lastName: e.target.value })}
+                            onChange={handleChange}
                             error={errors.lastName}
                         />
                         <Input
                             htmlFor="Email"
                             label="Email"
-                            name="email"
+                            name="Email"  // Fixed the name attribute
                             type="email"
                             value={Contact.Email}
-                            onChange={(e) => setContact({ ...Contact, Email: e.target.value })}
+                            onChange={handleChange}
                             error={errors.Email}
                         />
                         <Description
+                            name="Description"  // Fixed the name attribute
                             value={Contact.Description}
-                            onChange={(e) => setContact({ ...Contact, Description: e.target.value })}
+                            onChange={handleChange}
                             error={errors.Description}
                         />
 
@@ -97,11 +130,12 @@ const Form = ({}: IProps) => {
                         </div>
 
                         <div className="col-span-full sm:flex sm:items-center sm:gap-4">
-                            <Button text="Submit" onClick={submitHandler} />
+                            <Button text="Submit" />
                         </div>
                     </form>
                 </div>
             </main>
+            <Toaster />
         </section>
     )
 }

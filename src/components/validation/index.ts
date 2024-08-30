@@ -19,13 +19,13 @@ export const productValidation = (Contact: IContact): IContactError => {
     const emailValidation = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(Contact.Email)
     
     // التحقق من firstName
-    if (!Contact.firstName.trim() || Contact.firstName.length < 5 || Contact.firstName.length > 80) {
-        errors.firstName = 'Contact firstName must be between 5 and 80 characters';
+    if (!Contact.firstName.trim() || Contact.firstName.length < 3 || Contact.firstName.length > 80) {
+        errors.firstName = 'Contact firstName must be between 3 and 80 characters';
     }
 
     // التحقق من lastName
     if (!Contact.lastName.trim() || Contact.lastName.length < 5 || Contact.lastName.length > 80) {
-        errors.lastName = 'Contact lastName must be between 5 and 80 characters';
+        errors.lastName = 'Contact lastName must be between 3 and 80 characters';
     }
 
     // التحقق من Email
